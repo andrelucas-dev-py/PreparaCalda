@@ -22,30 +22,27 @@
     <script src="https://cdn.jsdelivr.net/npm/@stlite/mountable@0.57.0/build/stlite.js"></script>
     
     <script>
-        // Links Raw confirmados para o seu repositório
-        const LINK_PYTHON = "https://raw.githubusercontent.com/andrelucas-dev-py/PreparaCalda/refs/heads/main/app_offline.py";
-        const LINK_BANCO  = "https://raw.githubusercontent.com/andrelucas-dev-py/PreparaCalda/refs/heads/main/preparacalda2.db";
+       <script>
+    const LINK_PYTHON = "https://raw.githubusercontent.com/andrelucas-dev-py/PreparaCalda/refs/heads/main/app_offline.py";
+    const LINK_BANCO  = "https://raw.githubusercontent.com/andrelucas-dev-py/PreparaCalda/refs/heads/main/preparacalda2.db";
 
-        stlite.mount({
-            // Adicionamos 'sqlite3' ou garantimos que o ambiente carregue o core
-            requirements: ["pandas", "pysqlite3-binary"], 
-            files: {
-                "app_offline.py": {
-                    url: LINK_PYTHON
-                },
-                "preparacalda2.db": {
-                    url: LINK_BANCO
-                }
-            },
-            entrypoint: "app_offline.py",
-            mountPoint: document.getElementById("root"),
-            streamlitConfig: {
-                "server.headless": true,
-                "theme.primaryColor": "#2e7d32",
-                "theme.backgroundColor": "#fcfdfc"
-            }
-        });
+    stlite.mount({
+        // IMPORTANTE: Adicionamos o pysqlite3-binary aqui
+        requirements: ["pandas", "pysqlite3-binary"], 
+        files: {
+            "app_offline.py": { url: LINK_PYTHON },
+            "preparacalda2.db": { url: LINK_BANCO }
+        },
+        entrypoint: "app_offline.py",
+        mountPoint: document.getElementById("root"),
+        streamlitConfig: {
+            "server.headless": true,
+            "theme.primaryColor": "#2e7d32",
+        }
+    });
+</script>
     </script>
 </body>
 </html>
+
 
