@@ -15,7 +15,7 @@
         const LINK_BANCO  = "https://raw.githubusercontent.com/andrelucas-dev-py/PreparaCalda/main/preparacalda2.db";
 
         stlite.mount({
-            requirements: ["pandas", "pysqlite3-binary"], 
+            requirements: ["pandas", "pysqlite3"], 
             files: {
                 "app_offline.py": { url: LINK_PYTHON },
                 "preparacalda2.db": { url: LINK_BANCO }
@@ -26,6 +26,7 @@
     </script>
 </body>
 </html>
+
 
 
 
