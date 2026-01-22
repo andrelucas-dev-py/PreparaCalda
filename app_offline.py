@@ -1,3 +1,12 @@
+# HACK PARA STlite / WASM
+import sys
+if "sqlite3" not in sys.modules:
+    try:
+        import pysqlite3 as sqlite3
+        sys.modules["sqlite3"] = sqlite3
+    except ImportError:
+        pass
+
 import streamlit as st
 import sqlite3
 import pandas as pd
@@ -159,5 +168,6 @@ if selecionados:
                          (agora, " + ".join(selecionados)))
             conn.commit()
         except: pass
+
 
 conn.close()
