@@ -117,7 +117,7 @@ if selecionados:
                 tipo = (str(row.tipo_formulacao)).upper()
                 
                 # Alerta de Sólidos
-                if any(x in tipo for x in ['WP', 'WG', 'SG', 'FERT PO']):
+                if any(x in tipo for x in ['WP', 'WG', 'SG', 'PO']):
                     st.error(f"⚠️ **SÓLIDO DETECTADO:** Realizar pré-diluição obrigatória.")
                 
                 st.caption(f"Classe: {row.nome_categoria} | Tipo: {tipo}")
@@ -126,7 +126,3 @@ if selecionados:
 
 # Removido Histórico em SQL para evitar erros de escrita no navegador.
 # Dica: Você pode usar st.session_state se quiser um histórico temporário.
-
-
-
-
