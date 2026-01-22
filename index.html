@@ -27,7 +27,8 @@
         const LINK_BANCO  = "https://raw.githubusercontent.com/andrelucas-dev-py/PreparaCalda/refs/heads/main/preparacalda2.db";
 
         stlite.mount({
-            requirements: ["pandas"], 
+            // Adicionamos 'sqlite3' ou garantimos que o ambiente carregue o core
+            requirements: ["pandas", "pysqlite3-binary"], 
             files: {
                 "app_offline.py": {
                     url: LINK_PYTHON
@@ -41,12 +42,10 @@
             streamlitConfig: {
                 "server.headless": true,
                 "theme.primaryColor": "#2e7d32",
-                "theme.backgroundColor": "#fcfdfc",
-                "theme.secondaryBackgroundColor": "#f1f8e9",
-                "theme.textColor": "#1b5e20",
-                "client.toolbarMode": "minimal"
+                "theme.backgroundColor": "#fcfdfc"
             }
         });
     </script>
 </body>
 </html>
+
