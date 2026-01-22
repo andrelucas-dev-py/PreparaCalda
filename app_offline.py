@@ -1,18 +1,17 @@
-# HACK PARA STlite / WASM
 import sys
-if "sqlite3" not in sys.modules:
-    try:
-        import pysqlite3 as sqlite3
-        sys.modules["sqlite3"] = sqlite3
-    except ImportError:
-        pass
 
-import streamlit as st
+# Tenta forçar o carregamento do SQLite compatível com o navegador
+try:
+    __import__('pysqlite3')
+    sys.modules['sqlite3'] = sys.modules.pop('pysqlite3')
+except ImportError:
+    pass
+
 import sqlite3
+import streamlit as st
 import pandas as pd
 from datetime import datetime
 import os
-
 # --- CONFIGURAÇÃO DA PÁGINA ---
 st.set_page_config(
     page_title="PreparaCalda Pro ", 
@@ -171,3 +170,4 @@ if selecionados:
 
 
 conn.close()
+
