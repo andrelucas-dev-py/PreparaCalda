@@ -1,13 +1,12 @@
 import sys
 
-# Tenta forçar o carregamento do SQLite compatível com o navegador
+# Força o uso do pysqlite3 como sqlite3 no ambiente WASM
 try:
-    __import__('pysqlite3')
-    sys.modules['sqlite3'] = sys.modules.pop('pysqlite3')
+    import pysqlite3 as sqlite3
+    sys.modules["sqlite3"] = sqlite3
 except ImportError:
-    pass
+    import sqlite3
 
-import sqlite3
 import streamlit as st
 import pandas as pd
 from datetime import datetime
@@ -170,4 +169,5 @@ if selecionados:
 
 
 conn.close()
+
 
