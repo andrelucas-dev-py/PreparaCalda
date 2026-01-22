@@ -1,0 +1,39 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+    <meta charset="UTF-8" />
+    <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+    <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no" />
+    <title>PreparaCalda Pro </title>
+    <link rel="icon" type="image/png" href="https://cdn-icons-png.flaticon.com/512/2318/2318283.png" />
+    
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@stlite/mountable@0.57.0/build/stlite.css" />
+</head>
+<body>
+    <div id="root"></div>
+
+    <script src="https://cdn.jsdelivr.net/npm/@stlite/mountable@0.57.0/build/stlite.js"></script>
+    
+    <script>
+        stlite.mount({
+            requirements: ["pandas"], // O stlite já inclui sqlite3 por padrão no core do Python
+            files: {
+                "app_offline.py": {
+                    url: "https://raw.githubusercontent.com/andrelucas-dev-py/PreparaCalda/refs/heads/main/app_offline.py" 
+                },
+                "preparacalda2.db": {
+                    url: "https://raw.githubusercontent.com/andrelucas-dev-py/PreparaCalda/refs/heads/main/preparacalda2.db"
+                }
+            },
+            entrypoint: "app_offline.py",
+            mountPoint: document.getElementById("root"),
+            // Opções de performance: mostra um spinner enquanto o Python "boota" no iPhone
+            streamlitConfig: {
+                "server.headless": true,
+                "theme.primaryColor": "#2e7d32",
+                "theme.backgroundColor": "#ffffff",
+            }
+        });
+    </script>
+</body>
+</html>
