@@ -1,18 +1,11 @@
-import sys
-
-# Esse bloco engana o Python para usar o motor SQLite da Web como se fosse o nativo
-try:
-    import pysqlite3 as sqlite3
-    sys.modules["sqlite3"] = sqlite3
-except ImportError:
-    # Se falhar, tentamos o padrão
-    import sqlite3
-
 import streamlit as st
 import pandas as pd
+import os
+from datetime import datetime
+
 # --- CONFIGURAÇÃO DA PÁGINA ---
 st.set_page_config(
-    page_title="PreparaCalda Pro ", 
+    page_title="PreparaCalda Pro", 
     page_icon="🌱", 
     layout="wide",
     initial_sidebar_state="collapsed"
@@ -21,11 +14,9 @@ st.set_page_config(
 # --- ESTILIZAÇÃO AGRO TECH (CSS) ---
 st.markdown("""
     <style>
-    /* Fundo e Fontes */
     .main { background-color: #fcfdfc; }
-    h1, h2, h3 { color: #1b5e20 !important; font-family: 'Segoe UI', Roboto, Helvetica, Arial, sans-serif; }
+    h1, h2, h3 { color: #1b5e20 !important; font-family: 'Segoe UI', sans-serif; }
     
-    /* Box de Dosagem Personalizada */
     .dosagem-box { 
         border-left: 5px solid #2e7d32; 
         padding: 20px; 
@@ -35,7 +26,6 @@ st.markdown("""
         margin-bottom: 15px;
     }
     
-    /* Botões estilo Mobile App */
     .stButton>button {
         width: 100%;
         background: linear-gradient(135deg, #2e7d32 0%, #1b5e20 100%);
@@ -45,60 +35,42 @@ st.markdown("""
         font-weight: bold;
         border-radius: 12px;
         box-shadow: 0 4px 15px rgba(46, 125, 50, 0.3);
-        transition: all 0.3s;
-    }
-    
-    /* Ajustes para iPhone (Safe Area) e Android */
-    @media (max-width: 768px) {
-        .stApp { margin-bottom: 50px; }
-        .dosagem-box { padding: 15px; }
     }
     </style>
     """, unsafe_allow_html=True)
 
-# --- FUNÇÕES CORE ---
-def conectar_banco():
-    return sqlite3.connect('preparacalda2.db')
+# --- CARREGAMENTO DE DADOS (CSV substitui SQL) ---
+@st.cache_data
+def carregar_base_dados():
+    if os.path.exists('produtos.csv') and os.path.exists('categorias.csv'):
+        df_p = pd.read_csv('produtos.csv')
+        df_c = pd.read_csv('categorias.csv')
+        # Faz o JOIN via Pandas
+        return pd.merge(df_p, df_c, on='id_categoria')
+    return None
 
-# --- HEADER DECORATIVO ---
+# --- HEADER ---
 col_logo, col_tit = st.columns([1, 4])
 with col_logo:
     st.markdown("# 🚜")
 with col_tit:
     st.title("PreparaCalda Pro")
-    st.caption("🛡️ Tecnologia para Rendimento")
+    st.caption("🛡️ Tecnologia para Rendimento (Versão Offline-Web)")
 
-# --- VERIFICAÇÃO DE DADOS ---
-if not os.path.exists('preparacalda2.db'):
-    st.warning("🔄 Sincronizando base de dados... Por favor, aguarde.")
+df_completo = carregar_base_dados()
+
+if df_completo is None:
+    st.warning("🔄 Sincronizando arquivos de dados... Por favor, aguarde.")
     st.stop()
-
-conn = conectar_banco()
-
-# --- SIDEBAR (HISTÓRICO) ---
-with st.sidebar:
-    st.image("https://cdn-icons-png.flaticon.com/512/2318/2318283.png", width=80)
-    st.header("🕒 Histórico Local")
-    try:
-        conn.execute("CREATE TABLE IF NOT EXISTS Logs_Consultas (id_log INTEGER PRIMARY KEY AUTOINCREMENT, data_hora TEXT, protocolo_consultado TEXT)")
-        df_logs = pd.read_sql("SELECT data_hora, protocolo_consultado FROM Logs_Consultas ORDER BY id_log DESC LIMIT 5", conn)
-        for _, log in df_logs.iterrows():
-            with st.expander(f"📅 {log['data_hora']}"):
-                st.caption(log['protocolo_consultado'])
-    except:
-        st.info("Nenhuma consulta salva.")
 
 # --- INTERFACE DE CÁLCULO ---
 st.markdown("### 📋 1. Planejamento da Calda")
 with st.container():
     c1, c2 = st.columns([2, 1])
     with c1:
-        try:
-            df_p = pd.read_sql("SELECT nome_comercial FROM Produtos ORDER BY nome_comercial", conn)
-            selecionados = st.multiselect("Selecione os Insumos:", df_p['nome_comercial'].tolist())
-        except:
-            st.error("Falha ao carregar lista de produtos.")
-            st.stop()
+        # Pega lista única de produtos do CSV
+        lista_produtos = sorted(df_completo['nome_comercial'].unique())
+        selecionados = st.multiselect("Selecione os Insumos:", lista_produtos)
     with c2:
         vol_tanque = st.number_input("Capacidade Tanque (L):", min_value=100, value=2000, step=100)
 
@@ -118,6 +90,7 @@ if selecionados:
                 </div>
             ''', unsafe_allow_html=True)
             
+            # Lógica de cálculo conforme seu original
             if "Progibb" in prod:
                 d = st.number_input(f"Sachês / 1000L:", min_value=0.0, step=0.1, key=f"v_{prod}")
                 calc = (d / 1000) * vol_tanque
@@ -132,43 +105,27 @@ if selecionados:
         st.markdown("---")
         st.markdown("### 📝 Ordem de Adição Segura")
         
-        # Alerta de Água (Essencial)
         st.info(f"💧 **PASSO INICIAL:** Abastecer o tanque com **{vol_tanque * 0.5:.0f} Litros** de água e ativar a agitação.")
 
-        # Lógica de Prioridade Químicas
-        placeholder = ', '.join(['?'] * len(selecionados))
-        query = f"""
-            SELECT p.nome_comercial, p.tipo_formulacao, c.nome_categoria 
-            FROM Produtos p 
-            JOIN Categorias c ON p.id_categoria = c.id_categoria 
-            WHERE p.nome_comercial IN ({placeholder}) 
-            ORDER BY c.ordem_prioridade ASC
-        """
-        df_ordem = pd.read_sql(query, conn, params=selecionados)
+        # FILTRAGEM E ORDENAÇÃO (Substitui o ORDER BY do SQL)
+        df_ordem = df_completo[df_completo['nome_comercial'].isin(selecionados)].copy()
+        df_ordem = df_ordem.sort_values(by='ordem_prioridade', ascending=True)
 
-        for i, r in df_ordem.iterrows():
-            with st.expander(f"🔹 {i+1}º: {r['nome_comercial']}", expanded=True):
-                col_ic, col_txt = st.columns([1, 4])
-                with col_txt:
-                    st.markdown(f"**Quantidade:** {dosagens[r['nome_comercial']]}")
-                    tipo = (r['tipo_formulacao'] or "").upper()
-                    if any(x in tipo for x in ['WP', 'WG', 'SG', 'FERT PO']):
-                        st.error(f"⚠️ **SÓLIDO DETECTADO:** Realizar pré-diluição obrigatória.")
-                    st.caption(f"Classe: {r['nome_categoria']} | Tipo: {tipo}")
+        for i, row in enumerate(df_ordem.itertuples(), 1):
+            with st.expander(f"🔹 {i}º: {row.nome_comercial}", expanded=True):
+                st.markdown(f"**Quantidade:** {dosagens[row.nome_comercial]}")
+                tipo = (str(row.tipo_formulacao)).upper()
+                
+                # Alerta de Sólidos
+                if any(x in tipo for x in ['WP', 'WG', 'SG', 'PO']):
+                    st.error(f"⚠️ **SÓLIDO DETECTADO:** Realizar pré-diluição obrigatória.")
+                
+                st.caption(f"Classe: {row.nome_categoria} | Tipo: {tipo}")
 
         st.success(f"✅ **FINALIZAÇÃO:** Completar o volume até atingir **{vol_tanque}L**.")
-        
-        # Log de Segurança
-        try:
-            agora = datetime.now().strftime("%d/%m - %H:%M")
-            conn.execute("INSERT INTO Logs_Consultas (data_hora, protocolo_consultado) VALUES (?, ?)", 
-                         (agora, " + ".join(selecionados)))
-            conn.commit()
-        except: pass
 
-
-conn.close()
-
+# Removido Histórico em SQL para evitar erros de escrita no navegador.
+# Dica: Você pode usar st.session_state se quiser um histórico temporário.
 
 
 
