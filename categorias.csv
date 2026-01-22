@@ -1,0 +1,11 @@
+id_categoria,nome_categoria,ordem_prioridade
+1,Adjuvantes (A),1
+2,Grânulos (WG/SG),2
+3,Pós Molháveis (WP),3
+4,Pós (FERT PO),4
+5,Suspensões (SC),5
+6,Emulsões (EW),6
+7,Dispersão em Óleo (OD),7
+8,Concentrados (EC),8
+9,Solúveis (SL),9
+10,Líquidos (FERT LIQ),10
