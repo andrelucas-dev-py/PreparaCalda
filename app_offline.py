@@ -1,16 +1,17 @@
-import sys
-
-# Força o uso do pysqlite3 como sqlite3 no ambiente WASM
-try:
-    import pysqlite3 as sqlite3
-    sys.modules["sqlite3"] = sqlite3
-except ImportError:
-    import sqlite3
-
 import streamlit as st
+import sqlite3  # O Pyodide vai usar o módulo nativo dele
 import pandas as pd
 from datetime import datetime
 import os
+
+# Verificação de segurança para o banco de dados
+if not os.path.exists('preparacalda2.db'):
+    st.error("Erro Crítico: Arquivo de dados 'preparacalda2.db' não encontrado no VFS.")
+    st.stop()
+
+def conectar_banco():
+    # check_same_thread=False é essencial para rodar no navegador
+    return sqlite3.connect('preparacalda2.db', check_same_thread=False)
 # --- CONFIGURAÇÃO DA PÁGINA ---
 st.set_page_config(
     page_title="PreparaCalda Pro ", 
@@ -169,5 +170,6 @@ if selecionados:
 
 
 conn.close()
+
 
 
